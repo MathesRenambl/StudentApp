@@ -6,7 +6,7 @@ import Svg, { Line, Circle } from 'react-native-svg';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types'; 
 import { useNavigation } from '@react-navigation/native';
-// import MatchTheFollowing from './MatchTheFollowing';
+import MatchTheFollowing from './MatchTheFollowing';
 const { width, height } = Dimensions.get('window');
 type Navigation = NativeStackNavigationProp<RootStackParamList, 'ExamApp'>;
 

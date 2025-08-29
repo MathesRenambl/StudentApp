@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View,Text,ScrollView,TouchableOpacity,StyleSheet,SafeAreaView,Dimensions,StatusBar} from 'react-native';
 import { Bell,Home,BarChart3,FileText,Calendar,Trophy,BookOpen,Target,TrendingUp,TrendingDown,ArrowRight,Clock,CheckCircle,Star,Smartphone,HelpCircle} from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import colors from './color';
 const { width } = Dimensions.get('window');
 
 
@@ -65,7 +65,7 @@ interface TabButtonProps {
 }
 
 const StudentApp: React.FC = () => {
-  const navigation = useNavigation<Navigation>();
+  const navigation = useNavigation<Navigator>();
   const [activeTab, setActiveTab] = useState<TabType>('home');
 
   const handleExam = () =>{
@@ -401,7 +401,7 @@ const StudentApp: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4ff',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -455,23 +455,27 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   tabScrollContainer: {
-    paddingHorizontal: 50,
+    width : "100%",
+    display : "flex",
+    justifyContent : "space-between",
+    paddingHorizontal:5,
+
   },
   tabButton: {
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal:15,
     paddingVertical: 8,
     borderRadius: 20,
-    marginRight: 15,
+    // marginRight: 14,
   },
   activeTab: {
     backgroundColor: '#e8f0fe',
   },
   tabIcon: {
-    marginBottom: 4,
+    marginBottom: 2,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666',
     fontWeight: '600',
   },
