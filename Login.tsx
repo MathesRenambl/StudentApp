@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,63 +8,119 @@ interface LoginProps {
     navigation: NavigationProp<any>;
 }
 
+interface LoginResponse {
+    message: string;
+    studentId: number
+}
+
 const Login: React.FC<LoginProps> = () => {
     const navigation = useNavigation<NavigationProp<any>>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
+
+    const API_URL = "http://192.168.1.38:3000";
+
     const validateEmail = (email: string) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Please fill in all fields');
-            return;
-        }
-
+    const validateForm = () => {
         if (!validateEmail(email)) {
-            Alert.alert('Error', 'Please enter a valid email address');
-            return;
+            Alert.alert('Error', 'Please enter a valid email');
+            return false;
         }
 
-        setLoading(true);
+        if (!password) {
+            Alert.alert('Error', 'Please enter your password');
+            return false;
+        }
 
+        return true;
+    };
+
+    const handleLogin = async () => {
+        if(!validateForm()){
+            return;
+        }
+        setLoading(true);
+        
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const userData = { email: "sonu@gmail.com", password: "sonu@123456" };
-            
-            if (userData) {
-                if (userData.email === email && userData.password === password) {
-                    await AsyncStorage.setItem('userToken', 'demo_token_' + Date.now());
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'student' }],
-                    });
-                } else {
-                    Alert.alert('Error', 'Invalid email or password');
-                }
+
+             const response = await fetch(`${API_URL}/api/students/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email.trim(), 
+                    password: password
+                }),
+            });
+
+            const data:LoginResponse = await response.json();
+            console.log(data);
+        
+            if(response.ok && data.studentId){
+                await AsyncStorage.setItem('studentId', data.studentId.toString());
+                await AsyncStorage.setItem('email', email.trim());
+                Alert.alert(
+                    'Success',
+                    data.message || 'Login successful!',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => {
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'student' }],
+                                });
+                            }
+                        }
+                    ]
+                );
             } else {
-                Alert.alert('Error', 'User not found. Please sign up first.');
+                Alert.alert('Error', data.message || 'Login failed. Please check your credentials.');
             }
         } catch (error) {
-            Alert.alert('Error', 'Login failed. Please try again.');
             console.error('Login error:', error);
+            Alert.alert(
+                'Error', 
+                'Network error. Please check your internet connection and try again.'
+            );
         } finally {
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        const checkLogin = async () => {
+            const userData = await AsyncStorage.getItem("userData")
+            if (userData) {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'student' }],
+                })
+            }
+        }
+        checkLogin()
+    }, [])
+
+
+            // await new Promise(resolve => setTimeout(resolve, 1000));
+            // const userData = { email: "sonu@gmail.com", password: "sonu@123456" };
+
+            
     return (
         <SafeAreaView style={styles.container}>
-            <ImageBackground 
+            <ImageBackground
                 source={require('../StudentApp/assets/signin/signIn.png')} // 👈 replace with your image
                 style={styles.backgroundImage}
                 resizeMode="cover"
             >
-                <KeyboardAvoidingView 
+                <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={styles.keyboardAvoid}
                 >
@@ -99,8 +155,8 @@ const Login: React.FC<LoginProps> = () => {
                                 />
                             </View>
 
-                            <TouchableOpacity 
-                                style={[styles.loginButton, loading && styles.disabledButton]} 
+                            <TouchableOpacity
+                                style={[styles.loginButton, loading && styles.disabledButton]}
                                 onPress={handleLogin}
                                 disabled={loading}
                             >
@@ -156,7 +212,7 @@ const styles = StyleSheet.create({
         color: 'black',
     },
     form: {
-        backgroundColor: 'rgba(255,255,255,0.9)', 
+        backgroundColor: 'rgba(255,255,255,0.9)',
         padding: 20,
         borderRadius: 10,
         shadowColor: '#000',
